@@ -1,15 +1,35 @@
 #pragma once
 
 #include <stdint.h>
+#include "inode.h"
 
-#define TREEFS_MAGIC 0x54524653
+#define TREEFS_MAGIC 0x54524653 // "TRFS" em ASCII
+#define MAX_ENTRADAS_DIRETORIO 32 
 
+/* Superbloco */
 typedef struct {
     uint32_t magic;
     uint32_t total_blocks;
     uint32_t total_inodes;
     uint32_t block_size;
-
 } superblock_t;
 
+/* Entrada de um diretório */
+typedef struct {
+    uint32_t inode;
+    char name[32];
+} dir_entry_t;
+
+/* Conteúdo de um diretório */
+typedef struct {
+    dir_entry_t entradas[MAX_ENTRADAS_DIRETORIO];
+    uint32_t quantidade;
+} diretorio_t;
+
+/* Inicialização do sistema */
 int fs_init(void);
+
+/* Essas funções serão implementadas depois!! */
+int mkdir(const char *path);
+int create(const char *path);
+inode_t *path_lookup(const char *path);

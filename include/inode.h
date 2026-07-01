@@ -14,10 +14,10 @@ typedef struct {
     uint32_t blocks[MAX_BLOCOS_INODE];
 } inode_t;
 
-extern inode_t inode_table[MAX_INODES];
-
 void inode_init(void);
 
 inode_t *inode_alloc(void);
 
 void inode_free(uint32_t inode);
+
+uint32_t inode_index(inode_t *inode);

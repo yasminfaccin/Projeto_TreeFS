@@ -2,7 +2,7 @@
 
 static uint8_t block_bitmap[MAX_BLOCKS]; // 0 = livre e 1 = ocupado
 
-// Limpa o bitmap de blocos
+/* Limpa o bitmap de blocos */
 void block_init(void) {
     uint32_t indice_bloco;
 
@@ -11,7 +11,7 @@ void block_init(void) {
     }
 }
 
-// Procura um bloco livre no bitmap
+/* Procura um bloco livre no bitmap */
 int block_alloc(void) {
     uint32_t indice_bloco;
 
@@ -25,7 +25,7 @@ int block_alloc(void) {
     return -1; // erro de alocação, não há blocos livres
 }
 
-// Libera um bloco
+/* Libera um bloco */
 void block_free(uint32_t block) {
     if (block >= MAX_BLOCKS)
         return;
