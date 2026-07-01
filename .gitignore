@@ -1,0 +1,13 @@
+# Arquivos compilados
+*.o
+*.elf
+
+# Arquivos temporários
+*.log
+*.tmp
+
+# VSCode / Codespaces
+.vscode/
+
+# Sistema
+.DS_Store
