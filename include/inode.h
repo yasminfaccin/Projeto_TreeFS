@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #define MAX_INODES 128
+#define MAX_BLOCOS_INODE 8
 #define FS_FILE 1
 #define FS_DIR  2
 
@@ -10,7 +11,7 @@ typedef struct {
     uint32_t size;
     uint16_t type;
     uint16_t links;
-    uint32_t blocks[8];
+    uint32_t blocks[MAX_BLOCOS_INODE];
 } inode_t;
 
 extern inode_t inode_table[MAX_INODES];
