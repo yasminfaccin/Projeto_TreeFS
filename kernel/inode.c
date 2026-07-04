@@ -1,7 +1,7 @@
 #include "inode.h"
 
 static uint8_t inode_bitmap[MAX_INODES]; // 0 = livre e 1 = ocupado
-static inode_t inode_table[MAX_INODES];
+inode_t inode_table[MAX_INODES];
 
 /* Limpa o bitmap e a tabela de inodes */
 void inode_init(void) {

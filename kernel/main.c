@@ -2,6 +2,7 @@
 #include "scheduler.h"
 #include "memory.h"
 #include "uart.h"
+#include "treefs.h"
 
 extern void uart_print(const char*);
 
@@ -48,13 +49,23 @@ void task2()
 void kernel_main()
 {
     memory_init();   // OBRIGATÓRIO
+    /*
+    fs_init();
 
+    uart_print("\n--- Testando o File System ---\n");
+    ls("/");
+    uart_print("------------------------------\n");
+
+    while(1);
+    */
     uart_print("\n=== Kernel ===\n");
 
     xTaskCreate(task1, 2048, 1);
     xTaskCreate(task2, 2048, 1);
 
     scheduler_start();
+
+    
 
     while (1);
 }

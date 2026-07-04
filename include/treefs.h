@@ -12,6 +12,7 @@ typedef struct {
     uint32_t total_blocks;
     uint32_t total_inodes;
     uint32_t block_size;
+    uint32_t root_inode;
 } superblock_t;
 
 /* Entrada de um diretório */
@@ -33,3 +34,4 @@ int fs_init(void);
 int mkdir(const char *path);
 int create(const char *path);
 inode_t *path_lookup(const char *path);
+int ls(const char *path);
