@@ -5,6 +5,7 @@
 
 #define TREEFS_MAGIC 0x54524653 // "TRFS" em ASCII
 #define MAX_ENTRADAS_DIRETORIO 32 
+#define MAX_OPEN_FILES 128
 
 /* Superbloco */
 typedef struct {
@@ -27,11 +28,23 @@ typedef struct {
     uint32_t quantidade;
 } diretorio_t;
 
+typedef struct {
+    inode_t *inode;     
+    uint32_t offset;     
+    int in_use;  // (0 = livre, 1 = ocupado)
+} file_t;
+
+extern file_t fd_table[MAX_OPEN_FILES];
+
 /* Inicialização do sistema */
 int fs_init(void);
 
 /* Essas funções serão implementadas depois!! */
 int mkdir(const char *path);
 int create(const char *path);
+int write(int fd, const void *buf, uint32_t size);
+int read(int fd, void *buf, uint32_t size);
+
+/* Essas funções estão prontas */
 inode_t *path_lookup(const char *path);
 int ls(const char *path);
