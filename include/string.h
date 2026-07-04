@@ -6,4 +6,5 @@ void *memset(void *s, int c, uint64_t n);
 
 int strcmp(const char *a, const char *b);
 char *strcpy(char *dest, const char *src);
+char *strtok_r(char *s, char **lasts);
 uint64_t strlen(const char *s);
