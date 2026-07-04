@@ -303,3 +303,83 @@ int ls(const char *path){
 
     return 0;
 }
+
+int write(int fd, const void *buf, uint32_t size){
+
+    if (fd < 0 || fd >= MAX_OPEN_FILES) {
+        uart_print("FD invalido...\n");
+        return -1;
+    }
+
+    if (fd_table[fd].in_use == 0) {
+        uart_print("O arquivo nao esta aberto...\n");
+        return -1;
+    }
+
+    inode_t *inode = fd_table[fd].inode;
+
+    uint32_t qtd_blocos = (size + superblock.block_size - 1) / superblock.block_size;
+
+    if(qtd_blocos > MAX_BLOCOS_INODE){
+        uart_print("A quantidade de blocos necessaria eh maior que a disponivel no Inode\n");
+        return -1;
+    }
+
+    int indices_blocos[qtd_blocos];
+
+    for (int i = 0; i < qtd_blocos; i++){
+        int bloco_livre = block_alloc();
+
+        if (bloco_livre == -1) {
+            uart_print("Nao ha blocos livres suficientes no disco!\n");
+
+            if(i == 0){
+                return -1; 
+            }
+
+            for(int j = 0; j < i; j++){
+                block_free(indices_blocos[j]);
+            }
+            
+            return -1;
+        }
+        indices_blocos[i] = bloco_livre;
+    }
+
+    for (int i = 0; i < qtd_blocos; i++) {
+        inode->blocks[i] = indices_blocos[i];
+    }
+    
+
+    uint32_t bytes = size;
+    const uint8_t *buffer = (const uint8_t *)buf;  // Valor que vai ser escrito no arquivo
+
+    for (int i = 0; i < qtd_blocos; i++) {
+        void *endereco_bloco = block_get_address(inode->blocks[i]);
+        
+        uint32_t qtd_bytes = (bytes> BLOCK_SIZE) ? BLOCK_SIZE : bytes; // Calcula quanto copiar (512 bytes ou a sobra que for menor que 512)
+
+        memcpy(endereco_bloco, buffer, qtd_bytes); // Copia o buffer para dentro do bloco
+
+        bytes -= qtd_bytes;
+        buffer += qtd_bytes;
+    }
+
+    inode->size = size;
+    return size; // retorna a qtd de bytes que foi escrita
+}
+
+int read(int fd, void *buf, uint32_t size){
+
+    if (fd < 0 || fd >= MAX_OPEN_FILES) {
+        uart_print("FD invalido...\n");
+        return -1;
+    }
+
+    if (fd_table[fd].in_use == 0) {
+        uart_print("O arquivo nao esta aberto...\n");
+        return -1;
+    }
+
+
+}

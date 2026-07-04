@@ -1,6 +1,7 @@
 #include "block.h"
 
 static uint8_t block_bitmap[MAX_BLOCKS]; // 0 = livre e 1 = ocupado
+static uint8_t disk[MAX_BLOCKS][BLOCK_SIZE];
 
 /* Limpa o bitmap de blocos */
 void block_init(void) {
@@ -31,4 +32,9 @@ void block_free(uint32_t block) {
         return;
 
     block_bitmap[block] = 0;
+}
+
+void* block_get_address(uint32_t block_num) {
+    if (block_num >= MAX_BLOCKS) return NULL;
+    return disk[block_num];
 }
