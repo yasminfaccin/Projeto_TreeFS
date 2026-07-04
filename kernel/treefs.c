@@ -92,17 +92,158 @@ int fs_init(void) {
     return 0;
 }
 
-/* Dependem de path_lookup()!! */
+/* Separa um caminho em diretório pai e nome */
+static void separa_caminho(const char *path, char *pai, char *nome) {
+    uint32_t ultimo_separador = 0;
+    uint32_t indice;
+
+    // procura onde está a última '/'
+    for (indice = 0; path[indice] != '\0'; indice++) {
+        if (path[indice] == '/') {
+            ultimo_separador = indice;
+        }
+    }
+
+    // copia o diretório pai
+    if (ultimo_separador == 0) {
+        pai[0] = '/';
+        pai[1] = '\0';
+
+    } else {
+        for (indice = 0; indice < ultimo_separador; indice++) {
+            pai[indice] = path[indice];
+        }
+        pai[ultimo_separador] = '\0';
+    }
+
+    // copia apenas o nome
+    indice = 0;
+
+    while (path[ultimo_separador + 1] != '\0') {
+        nome[indice++] = path[ultimo_separador + 1];
+        ultimo_separador++;
+    }
+
+    nome[indice] = '\0'; // garante que a string termine com '\0'
+}
+
+/* Procura uma entrada pelo nome dentro de um diretório */
+static int procura_entrada(diretorio_t *diretorio, const char *nome) {
+    uint32_t indice_entrada;
+
+    for (indice_entrada = 0;
+         indice_entrada < diretorio->quantidade;
+         indice_entrada++) {
+
+        if (strcmp(diretorio->entradas[indice_entrada].name, nome) == 0) {
+            return indice_entrada;
+        }
+    }
+
+    return -1;
+}
+
+/* Cria um novo diretório */
 int mkdir(const char *path) {
-    (void)path;
-    return -1;
+    char caminho_pai[128];
+    char nome[32];
+
+    inode_t *inode_pai;
+    inode_t *novo_inode;
+
+    uint32_t indice_pai;
+    uint32_t indice_novo;
+    uint32_t indice_entrada;
+
+    separa_caminho(path, caminho_pai, nome); // separa o caminho
+
+    inode_pai = path_lookup(caminho_pai); // acha o inode do diretório pai
+
+    if (inode_pai == 0)
+        return -1;
+
+    if (inode_pai->type != FS_DIR)
+        return -1;
+
+    indice_pai = inode_index(inode_pai); // pega o índice do inode pai na tabela de inodes
+
+    // para verificar a duplicidade
+    if (procura_entrada(&diretorios[indice_pai], nome) != -1)
+        return -1;
+
+    // ve se o diretório pai tem espaço para mais entradas
+    if (diretorios[indice_pai].quantidade >= MAX_ENTRADAS_DIRETORIO)
+        return -1;
+
+    novo_inode = inode_alloc();
+
+    if (novo_inode == 0)
+        return -1;
+
+    novo_inode->type = FS_DIR;
+    indice_novo = inode_index(novo_inode);
+    diretorios[indice_novo].quantidade = 0;
+
+    indice_entrada = diretorios[indice_pai].quantidade;
+    diretorios[indice_pai].entradas[indice_entrada].inode = indice_novo;
+    strcpy(diretorios[indice_pai].entradas[indice_entrada].name, nome);
+    diretorios[indice_pai].quantidade++;
+
+    return 0;
 }
 
+/* Cria um novo arquivo */
 int create(const char *path) {
-    (void)path;
-    return -1;
+    char caminho_pai[128];
+    char nome[32];
+
+    inode_t *inode_pai;
+    inode_t *novo_inode;
+
+    uint32_t indice_pai;
+    uint32_t indice_novo;
+    uint32_t indice_entrada;
+
+    separa_caminho(path, caminho_pai, nome); // separa o caminho
+    inode_pai = path_lookup(caminho_pai); // acha o inode do diretório pai
+
+    if (inode_pai == 0) 
+        return -1;
+
+    if (inode_pai->type != FS_DIR)
+        return -1;
+
+    indice_pai = inode_index(inode_pai);
+
+    // para verificar a duplicidade
+    if (procura_entrada(&diretorios[indice_pai], nome) != -1)
+        return -1;
+    
+    // ve se o diretório pai tem espaço para mais entradas
+    if (diretorios[indice_pai].quantidade >= MAX_ENTRADAS_DIRETORIO)
+        return -1;
+
+    novo_inode = inode_alloc();
+
+    if (novo_inode == 0)
+        return -1;
+
+    // inicializa o novo inode como arquivo
+    novo_inode->type = FS_FILE;
+    novo_inode->size = 0;
+    novo_inode->links = 1;
+
+    indice_novo = inode_index(novo_inode);
+    indice_entrada = diretorios[indice_pai].quantidade;
+    diretorios[indice_pai].entradas[indice_entrada].inode = indice_novo;
+
+    strcpy(diretorios[indice_pai].entradas[indice_entrada].name, nome);
+    diretorios[indice_pai].quantidade++;
+
+    return 0;
 }
 
+/* Resolução de Caminhos */
 inode_t *path_lookup(const char *path) {
     diretorio_t *dir_atual = &diretorios[superblock.root_inode]; //pega o diretorio raiz (C:\ do Windows)
 
@@ -138,6 +279,7 @@ inode_t *path_lookup(const char *path) {
     return &inode_table[proximo_inode];
 }
 
+/* Lista o conteúdo de um diretório */
 int ls(const char *path){
     inode_t *inode = path_lookup(path);
 

@@ -39,12 +39,15 @@ extern file_t fd_table[MAX_OPEN_FILES];
 /* Inicialização do sistema */
 int fs_init(void);
 
-/* Essas funções serão implementadas depois!! */
-int mkdir(const char *path);
-int create(const char *path);
-int write(int fd, const void *buf, uint32_t size);
-int read(int fd, void *buf, uint32_t size);
-
 /* Essas funções estão prontas */
 inode_t *path_lookup(const char *path);
+
 int ls(const char *path);
+
+int mkdir(const char *path);
+
+int create(const char *path);
+
+/* Essas funções serão implementadas depois!! */
+int write(int fd, const void *buf, uint32_t size);
+int read(int fd, void *buf, uint32_t size);
