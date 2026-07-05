@@ -81,7 +81,7 @@ void execucao_cenarios(){
     uart_print("Ainda nao foi feito\n");
     //unlink("/home/aluno/notas.txt");
 
-    uart_print("\nCenario 7 - Navegacao Hierarquica\n");
+    uart_print("\nCenario 7 - Navegacao Hierarquica ('/home')\n");
     ls("/home");
 
     uart_print("\nCenario 8 - Reutilizacao de inodes e blocos liberados\n");
