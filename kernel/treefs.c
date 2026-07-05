@@ -381,5 +381,30 @@ int read(int fd, void *buf, uint32_t size){
         return -1;
     }
 
+    inode_t *inode = fd_table[fd].inode;
 
+    uint32_t bytes_leitura = size;
+    
+    if(bytes_leitura > inode->size){
+        bytes_leitura = inode->size; // Evita a leitura de lixo
+    }
+
+    uint32_t total_lido = bytes_leitura;
+
+    uint32_t qtd_blocos = (bytes_leitura + superblock.block_size - 1) / superblock.block_size;
+
+    uint8_t *buffer = (uint8_t *)buf;
+
+    for (int i = 0; i < qtd_blocos; i++) {
+        void *endereco_bloco = block_get_address(inode->blocks[i]);
+        
+        uint32_t qtd_bytes = (bytes_leitura > BLOCK_SIZE) ? BLOCK_SIZE : bytes_leitura; // Calcula quanto copiar (512 bytes ou a sobra que for menor que 512)
+
+        memcpy(buffer, endereco_bloco, qtd_bytes); // Lógica inversa, o destino é a RAM e a origem os blocos fisicos
+
+        bytes_leitura -= qtd_bytes;
+        buffer += qtd_bytes;
+    }
+
+    return total_lido; // retorna quantos bytes foram lidos
 }
