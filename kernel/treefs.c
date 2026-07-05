@@ -7,6 +7,7 @@
 
 static superblock_t superblock; // superbloco do sistema
 static diretorio_t diretorios[MAX_INODES]; // um diretório para cada inode
+file_t fd_table[MAX_OPEN_FILES];
 
 /* Inicialização do sistema de arquivos */
 int fs_init(void) {
@@ -240,7 +241,26 @@ int create(const char *path) {
     strcpy(diretorios[indice_pai].entradas[indice_entrada].name, nome);
     diretorios[indice_pai].quantidade++;
 
-    return 0;
+    // Preparar estrutura para escrita futura.
+
+    int fd_livre = -1;
+    
+    for (int i = 0; i < MAX_OPEN_FILES; i++) {
+        if (fd_table[i].in_use == 0) {
+            fd_livre = i; 
+            break;
+        }
+    }
+
+    if (fd_livre == -1) {
+        uart_print("Tabela de arquivos abertos cheia.\n");
+        return -1; 
+    }
+
+    fd_table[fd_livre].in_use = 1;
+    fd_table[fd_livre].inode = novo_inode;
+    
+    return fd_livre;
 }
 
 /* Resolução de Caminhos */

@@ -2,6 +2,15 @@
 #include "string.h"
 #define NULL ((void *)0)
 
+void *memcpy(void *dest, const void *src, uint64_t n) {
+    uint8_t *d = (uint8_t *)dest;
+    const uint8_t *s = (const uint8_t *)src;
+    for (uint64_t i = 0; i < n; i++) {
+        d[i] = s[i];
+    }
+    return dest;
+}
+
 /* Preenche n bytes com um valor */
 void *memset(void *s, int c, uint64_t n) {
     uint8_t *ponteiro = (uint8_t *)s;
