@@ -1,5 +1,5 @@
 #include "block.h"
-#define NULL ((void *)0)
+#include <stddef.h>
 
 static uint8_t block_bitmap[MAX_BLOCKS]; // 0 = livre e 1 = ocupado
 static uint8_t disk[MAX_BLOCKS][BLOCK_SIZE];

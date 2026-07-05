@@ -263,6 +263,53 @@ int create(const char *path) {
     return fd_livre;
 }
 
+/* Remove um arquivo do sistema de arquivos */
+int unlink(const char *path) {
+    char caminho_pai[128];
+    char nome[32];
+
+    inode_t *inode_pai;
+    inode_t *inode_alvo;
+
+    uint32_t indice_pai;
+    uint32_t indice_alvo;
+    int indice_entrada;
+    uint32_t indice;
+
+    if (path == 0 || path[0] == '\0')
+        return -1;
+
+    separa_caminho(path, caminho_pai, nome);
+    inode_pai = path_lookup(caminho_pai);
+
+    if (inode_pai == 0)
+        return -1;
+
+    if (inode_pai->type != FS_DIR)
+        return -1;
+
+    indice_pai = inode_index(inode_pai);
+    indice_entrada = procura_entrada(&diretorios[indice_pai], nome);
+
+    if (indice_entrada == -1)
+        return -1;
+
+    indice_alvo = diretorios[indice_pai].entradas[indice_entrada].inode;
+    inode_alvo = &inode_table[indice_alvo];
+
+    if (inode_alvo->type != FS_FILE)
+        return -1;
+
+    for (indice = indice_entrada; indice + 1 < diretorios[indice_pai].quantidade; indice++) {
+        diretorios[indice_pai].entradas[indice] = diretorios[indice_pai].entradas[indice + 1];
+    }
+
+    diretorios[indice_pai].quantidade--;
+    inode_free(indice_alvo);
+
+    return 0;
+}
+
 /* Resolução de Caminhos */
 inode_t *path_lookup(const char *path) {
     diretorio_t *dir_atual = &diretorios[superblock.root_inode]; //pega o diretorio raiz (C:\ do Windows)

@@ -48,6 +48,8 @@ int mkdir(const char *path);
 
 int create(const char *path);
 
+int unlink(const char *path);
+
 /* Essas funções serão implementadas depois!! */
 int write(int fd, const void *buf, uint32_t size);
 int read(int fd, void *buf, uint32_t size);
