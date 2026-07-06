@@ -208,7 +208,7 @@ drivers/
 include/
 │
 ├── block.h       # Interface do gerenciamento de blocos
-├──	fs.h          # Interface do sistema de arquivos (não implementado)
+├──	fs.h          # Interface do sistema de arquivos
 ├── inode.h       # Estruturas e gerenciamento de inodes
 ├──	memory.h      # Interface do gerenciador de memória
 ├──	scheduler.h   # Interface do escalonador
@@ -219,7 +219,7 @@ include/
 kernel/
 │
 ├── context.S     # Troca de contexto
-├── fs.c          # Sistema de arquivos (não implementado)
+├── fs.c          # Sistema de arquivos
 ├── inode.c       # Gerenciamento de inodes
 ├── main.c        # Inicialização do kernel
 ├── memory.c      # Heap do kernel
