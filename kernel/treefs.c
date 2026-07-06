@@ -304,6 +304,16 @@ int unlink(const char *path) {
         diretorios[indice_pai].entradas[indice] = diretorios[indice_pai].entradas[indice + 1];
     }
 
+    uint32_t qtd_blocos = 0;
+    
+    if (inode_alvo->size > 0) {
+        qtd_blocos = (inode_alvo->size - 1) / BLOCK_SIZE + 1; 
+    }
+
+    for (uint32_t i = 0; i < qtd_blocos; i++) {
+        block_free(inode_alvo->blocks[i]);
+    }
+
     diretorios[indice_pai].quantidade--;
     inode_free(indice_alvo);
 
@@ -363,9 +373,13 @@ int ls(const char *path){
     uint32_t indice_inode = inode_index(inode);
     diretorio_t *dir_atual = &diretorios[indice_inode];
 
-    for(int i = 0; i < dir_atual->quantidade; i++){
-        uart_print(dir_atual->entradas[i].name);
-        uart_print("\n");
+    if (dir_atual->quantidade == 0) {
+        uart_print("Diretorio vazio. Finalizando...\n");
+    }else{
+        for(int i = 0; i < dir_atual->quantidade; i++){
+            uart_print(dir_atual->entradas[i].name);
+            uart_print("\n");
+        }
     }
 
     return 0;

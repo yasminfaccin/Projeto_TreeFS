@@ -1,4 +1,5 @@
 #include "block.h"
+#include "uart.h"
 #include <stddef.h>
 
 static uint8_t block_bitmap[MAX_BLOCKS]; // 0 = livre e 1 = ocupado
@@ -20,6 +21,9 @@ int block_alloc(void) {
     for (indice_bloco = 0; indice_bloco < MAX_BLOCKS; indice_bloco++) {
         if (block_bitmap[indice_bloco] == 0) {
             block_bitmap[indice_bloco] = 1;
+            uart_print("Bloco fisico alocado: ");
+            uart_print_uint(indice_bloco); 
+            uart_print("\n");
             return indice_bloco;
         }
     }
@@ -33,6 +37,9 @@ void block_free(uint32_t block) {
         return;
 
     block_bitmap[block] = 0;
+    uart_print("Bloco fisico liberado: ");
+    uart_print_uint(block);
+    uart_print("\n");
 }
 
 void* block_get_address(uint32_t block_num) {
