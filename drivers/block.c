@@ -42,7 +42,8 @@ void block_free(uint32_t block) {
     uart_print("\n");
 }
 
-void* block_get_address(uint32_t block_num) {
+/* Retorna o endereço */
+void *block_get_address(uint32_t block_num) {
     if (block_num >= MAX_BLOCKS) return NULL;
     return disk[block_num];
 }

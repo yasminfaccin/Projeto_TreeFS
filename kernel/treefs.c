@@ -7,7 +7,7 @@
 
 static superblock_t superblock; // superbloco do sistema
 static diretorio_t diretorios[MAX_INODES]; // um diretório para cada inode
-file_t fd_table[MAX_OPEN_FILES];
+file_t fd_table[MAX_OPEN_FILES]; 
 
 /* Inicialização do sistema de arquivos */
 int fs_init(void) {
@@ -385,6 +385,7 @@ int ls(const char *path){
     return 0;
 }
 
+/* Escrita de Arquivos */
 int write(int fd, const void *buf, uint32_t size){
 
     if (fd < 0 || fd >= MAX_OPEN_FILES) {
@@ -450,6 +451,7 @@ int write(int fd, const void *buf, uint32_t size){
     return size; // retorna a qtd de bytes que foi escrita
 }
 
+/* Leitura de Arquivos */
 int read(int fd, void *buf, uint32_t size){
 
     if (fd < 0 || fd >= MAX_OPEN_FILES) {
