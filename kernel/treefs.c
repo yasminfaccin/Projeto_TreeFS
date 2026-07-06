@@ -234,6 +234,8 @@ int create(const char *path) {
     novo_inode->type = FS_FILE;
     novo_inode->size = 0;
     novo_inode->links = 1;
+    novo_inode->permissions = PERM_READ | PERM_WRITE;
+
 
     indice_novo = inode_index(novo_inode);
     indice_entrada = diretorios[indice_pai].quantidade;
@@ -325,6 +327,12 @@ int unlink(const char *path) {
 inode_t *path_lookup(const char *path) {
     diretorio_t *dir_atual = &diretorios[superblock.root_inode]; //pega o diretorio raiz (C:\ do Windows)
 
+    inode_t *inode_atual = &inode_table[superblock.root_inode];
+    if ((inode_atual->permissions & PERM_EXEC) == 0) {
+        uart_print("Permissao negada para acessar o diretorio raiz.\n");
+        return NULL;
+    }
+
     char caminho_temp[256];
     strcpy(caminho_temp, path); // Faz uma copia do path para podermos fatia-lo e não modificar o path original
 
@@ -351,7 +359,16 @@ inode_t *path_lookup(const char *path) {
         }else{
             flag = 0;
         }
+
         nome_atual = strtok_r(NULL,&lasts);
+
+        if (nome_atual != NULL) {
+            // Verificação de permissão para acessar a pasta
+            if ((inode_atual->permissions & PERM_EXEC) == 0) {
+                uart_print("Erro: Permissao negada para entrar na pasta.\n");
+                return NULL; // Barrado no meio do caminho!
+            }
+        }
     }
 
     return &inode_table[proximo_inode];
@@ -399,7 +416,13 @@ int write(int fd, const void *buf, uint32_t size){
         return -1;
     }
 
+
     inode_t *inode = fd_table[fd].inode;
+
+    if ((inode->permissions & PERM_WRITE) == 0) {
+        uart_print("Permissao negada para escrita...\n");
+        return -1; 
+    }
 
     uint32_t qtd_blocos = (size + superblock.block_size - 1) / superblock.block_size;
 
@@ -471,6 +494,11 @@ int read(int fd, void *buf, uint32_t size){
 
     inode->accessed_at = timestamp(); // quando faz a leitura atualiza o acesso
 
+    if ((inode->permissions & PERM_READ) == 0) {
+        uart_print("Permissao negada para leitura...\n");
+        return -1; 
+    }
+
     uint32_t bytes_leitura = size;
     
     if(bytes_leitura > inode->size){
@@ -517,4 +545,17 @@ void informacoes_timestamp(const char *path) {
     uart_print("Ultimo acesso: ");
     uart_print_uint(inode->accessed_at);
     uart_print("\n");
+}
+
+// Modifica as permissoes
+int chmod(const char *path, uint8_t novas_permissoes) {
+    inode_t *inode = path_lookup(path);
+    
+    if (inode == 0) {
+        uart_print("Erro: Arquivo nao encontrado para chmod.\n");
+        return -1;
+    }
+
+    inode->permissions = novas_permissoes;
+    return 0;
 }

@@ -62,30 +62,32 @@ void execucao_cenarios(){
     uart_print("Cenario 3- Criacao de Arquivos('/home/aluno/notas.txt')\n");
     uart_print("=======================================================\n");
     int fd = create("/home/aluno/notas.txt");
-    uart_print("Timestamp apos criar o arquivo:\n");
-    informacoes_timestamp("/home/aluno/notas.txt");
     uart_print("(Verificando /aluno...)\n");
     ls("/home/aluno");
+    uart_print("\nTimestamp apos criar o arquivo:\n");
+    informacoes_timestamp("/home/aluno/notas.txt");
 
     uart_print("\nCenario 4 - Escrita ('Sistemas Operacionais')\n");
     uart_print("=============================================\n");
     int bytes_escritos = write(fd, "Sistemas Operacionais", 22);
-    uart_print("Timestamp apos escrita:\n");
-    informacoes_timestamp("/home/aluno/notas.txt");
     uart_print("Total de bytes escritos: ");
     uart_print_uint(bytes_escritos);
+    uart_print("\n");
+    uart_print("\nTimestamp apos escrita:\n");
+    informacoes_timestamp("/home/aluno/notas.txt");
     uart_print("\n");
 
     uart_print("\nCenario 5 - Leitura\n");
     uart_print("====================\n");
     char buffer[30]; // Armazenamento para leitura
     int bytes_lidos = read(fd,buffer,22);
-    uart_print("Timestamp apos leitura:\n");
-    informacoes_timestamp("/home/aluno/notas.txt");
     uart_print("Total de bytes lidos: ");
     uart_print_uint(bytes_lidos);
     uart_print(" - Buffer: ");
     uart_print(buffer); 
+    uart_print("\n");
+    uart_print("\nTimestamp apos leitura:\n");
+    informacoes_timestamp("/home/aluno/notas.txt");
     uart_print("\n");
 
     uart_print("\nCenario 6 - Remocao ('/home/aluno/notas.txt')\n");
@@ -107,6 +109,21 @@ void execucao_cenarios(){
     uart_print("(Verificando /home/aluno...)\n");
     ls("/home/aluno");
     uart_print("\n");
+
+    uart_print("\nCenario 9 (Extra) - Teste de Permissoes\n");
+    uart_print("========================================\n");
+    uart_print("(Criando gabarito.txt em /home/aluno)\n");
+    int fd_seguro = create("/home/aluno/gabarito.txt");
+    write(fd_seguro, "As respostas da prova sao...", 28);
+    chmod("/home/aluno/gabarito.txt", PERM_READ);
+    uart_print("Permissoes alteradas para Read Only.\n");
+    uart_print("Tentando modificar arquivo protegido...\n");
+    int resultado = write(fd_seguro, "Tentando modificar...", 21);
+
+    if (resultado == -1) {
+        uart_print("O Sistema Operacional bloqueou a modificacao.\n");
+    }
+
 }
 
 /*   Kernel   */
