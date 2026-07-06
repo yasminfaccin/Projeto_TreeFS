@@ -15,6 +15,8 @@ void inode_init(void) {
         inode_table[indice_inode].size = 0;
         inode_table[indice_inode].type = 0;
         inode_table[indice_inode].links = 0;
+        // Como não possui suporte para multiplos usuáriops, a raiz recebe todas as permissões
+        inode_table[indice_inode].permissions = PERM_READ | PERM_WRITE | PERM_EXEC;
 
         // zera os blocos apontados por este inode
         for (indice_bloco = 0; indice_bloco < MAX_BLOCOS_INODE; indice_bloco++) {
@@ -50,7 +52,7 @@ inode_t *inode_alloc(void) {
                 inode_table[indice_inode].blocks[indice_bloco] = 0;
             }
 
-            uart_print("Inode alocado: ");
+            uart_print("(inode_alloc) - Inode alocado: ");
             uart_print_uint(indice_inode);
             uart_print("\n");
 
@@ -83,7 +85,7 @@ void inode_free(uint32_t inode) {
     inode_table[inode].modified_at = 0;
     inode_table[inode].accessed_at = 0;
 
-    uart_print("Inode liberado: ");
+    uart_print("(inode_free) - Inode liberado: ");
     uart_print_uint(inode);
     uart_print("\n");
 }

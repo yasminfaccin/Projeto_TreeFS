@@ -53,3 +53,5 @@ int write(int fd, const void *buf, uint32_t size);
 int read(int fd, void *buf, uint32_t size);
 
 void informacoes_timestamp(const char *path);
+
+int chmod(const char *path, uint8_t novas_permissoes);
