@@ -62,12 +62,16 @@ void execucao_cenarios(){
     uart_print("Cenario 3- Criacao de Arquivos('/home/aluno/notas.txt')\n");
     uart_print("=======================================================\n");
     int fd = create("/home/aluno/notas.txt");
+    uart_print("Timestamp apos criar o arquivo:\n");
+    informacoes_timestamp("/home/aluno/notas.txt");
     uart_print("(Verificando /aluno...)\n");
     ls("/home/aluno");
 
     uart_print("\nCenario 4 - Escrita ('Sistemas Operacionais')\n");
     uart_print("=============================================\n");
     int bytes_escritos = write(fd, "Sistemas Operacionais", 22);
+    uart_print("Timestamp apos escrita:\n");
+    informacoes_timestamp("/home/aluno/notas.txt");
     uart_print("Total de bytes escritos: ");
     uart_print_uint(bytes_escritos);
     uart_print("\n");
@@ -76,6 +80,8 @@ void execucao_cenarios(){
     uart_print("====================\n");
     char buffer[30]; // Armazenamento para leitura
     int bytes_lidos = read(fd,buffer,22);
+    uart_print("Timestamp apos leitura:\n");
+    informacoes_timestamp("/home/aluno/notas.txt");
     uart_print("Total de bytes lidos: ");
     uart_print_uint(bytes_lidos);
     uart_print(" - Buffer: ");
