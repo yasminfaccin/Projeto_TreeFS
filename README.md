@@ -3,17 +3,10 @@
 O **projeto-base** utilizado neste trabalho está disponível em: `https://github.com/VielF/BasicMicrokernel`
 
 ## Descrição
-Este projeto consiste na implementação de um **microkernel simples** para **arquitetura RISC-V**, com foco no **gerenciamento de memória dinâmica** no kernel.
+Este projeto consiste na implementação de um **sistema de arquivos hierárquico**, denominado **TreeFS**, desenvolvido sobre um microkernel para arquitetura **RISC-V**.
 
-Foram implementadas **funcionalidades** como:
-- Alocação dinâmica de memória (`kmalloc`);
-- Liberação de memória (`kfree`);
-- Reutilização de blocos;
-- Divisão de blocos;
-- Coalescência de blocos livres;
-- Estatísticas do heap.
+O objetivo é implementar os principais mecanismos de um sistema de arquivos inspirado nos sistemas Unix, utilizando diretórios, inodes e gerenciamento de blocos.
 
-Além disso, o sistema executa múltiplas tarefas (tasks) com troca de contexto e escalonamento.
 
 ## Disciplina:
 Sistemas Operacionais
@@ -80,217 +73,126 @@ qemu-system-riscv64 \
 
 ---
 
-## Funcionamento do sistema
-1. O **kernel** é inicializado (`kernel_main`)
-2. O **heap** é configurado (`memory_init`)
-3. Um menu interativo é exibido via UART
-4. O usuário executa testes de **gerenciamento de memória**
-5. Tasks **podem ser** criadas dinamicamente
-6. O **escalonador** é iniciado sob demanda (`scheduler_start`)
-7. As **tasks** passam a executar em modo cooperativo
+## Implementação
+
+O TreeFS implementa os principais componentes de um sistema de arquivos hierárquico:
+
+- Superbloco;
+- Bitmap de inodes;
+- Bitmap de blocos;
+- Área de inodes;
+- Área de dados;
+- Estrutura de diretórios hierárquicos;
+- Resolução de caminhos (`path_lookup()`);
+- Criação de diretórios (`mkdir()`);
+- Criação de arquivos (`create()`);
+- Listagem de diretórios (`ls()`);
+- Gerenciamento de inodes;
+- Gerenciamento de blocos.
 
 ---
 
-## Gerenciamento de Memória
-O sistema utiliza uma **lista encadeada de blocos de memória**:
+### Cenários de Teste
+#### Cenário 1 - Listagem da raiz
 
-**Cada bloco contém:**
-- Tamanho;
-- Ponteiro para o próximo bloco;
-- Flag de livre/ocupado.
-
-**Funcionalidades implementadas:**
-- Múltiplas alocações;
-- Liberação de memória;
-- Reutilização de blocos livres;
-- Divisão de blocos grandes;
-- Coalescência de blocos adjacentes;
-- Estatísticas do heap.
-
----
-## Modelo de Escalonamento
-
-O sistema utiliza **escalonamento cooperativo**, onde a troca de contexto ocorre apenas quando a task chama `yield()`.
-
-Não há uso de interrupções de timer, portanto o projeto não implementa multitarefa preemptiva nesta versão. No entanto, a estrutura do sistema já permite evolução futura para esse modelo.
-
----
-
-## Troca de Contexto
-A troca de contexto foi implementada em Assembly `context.S`, salvando e restaurando registradores das tarefas.
-
-**Problema identificado:**
-- Sobrescrita de registradores a0/a1 durante o salvamento
-
-**Solução:**
-- Uso de registradores temporários (t5 e t6) para preservar ponteiros de contexto
-
----
-
-## Menu de Testes de Memória
-O sistema possui um menu interativo via **UART**, permitindo testar dinamicamente o comportamento do alocador de memória implementado.
-
-### Objetivo
-**Demonstrar, na prática:**
-- Alocação e liberação de memória
-- Reutilização de blocos
-- Fragmentação e coalescência
-- Uso de memória por tasks
-- Estado interno do heap
-
-### Opções do Menu
-```bash
-=== Menu de demonstracao de memoria ===
-1 - Mostrar estatisticas do heap
-2 - Teste: alocar p1, p2, p3
-3 - Teste: liberar p2 e p1 (coalescencia)
-4 - Teste: alocar p4 em memoria liberada
-5 - Teste: liberar p3 e p4
-6 - Criar tasks com stacks dinamicas
-7 - Remover Task 0 (liberar stack)
-8 - Mostrar mapa do heap
-9 - Iniciar o scheduler
-0 - Sair do menu e travar kernel
+Após a inicialização do sistema de arquivos:
+```c
+fs_init();
+ls("/");
 ```
 
-### Descrição dos Testes
-#### 1 - Estatísticas do Heap
-Exibe:
+Saída esperada:
 ```bash
-Memória total
-Memória utilizada
-Memória livre
+home
+tmp
+bin
 ```
 
-#### 2 - Alocação inicial (p1, p2, p3)
-Realiza três alocações:
-```bash
-p1 = 1024 bytes
-p2 = 2048 bytes
-p3 = 512 bytes
+#### Cenário 2 - Criação de diretório
+
+Cria um novo diretório dentro de /home.
+```c
+mkdir("/home/aluno");
 ```
 
-**Permite observar:**
-- Crescimento do uso de memória;
-- Organização inicial dos blocos.
-
-#### 3 - Liberação com Coalescência
-Libera:
+Estrutura resultante:
 ```bash
-p2
-p1
+/
+├── home
+│   └── aluno
+├── tmp
+└── bin
 ```
-Como os blocos são adjacentes, ocorre **coalescência**, ou seja: os blocos livres são fundidos em um bloco maior.
 
-#### 4 - Reutilização de Memória
-Aloca:
+#### Cenário 3 - Criação de arquivo
+
+Cria um arquivo dentro do diretório criado.
+```c
+create("/home/aluno/notas.txt");
+```
+
+Estrutura:
 ```bash
-p4 = 1536 bytes
+/
+├── home
+│   └── aluno
+│       └── notas.txt
+├── tmp
+└── bin
 ```
-**Este teste demonstra:**
-- Reutilização de blocos livres;
-- Eficiência do allocator (evita crescimento desnecessário do heap).
 
-#### 5 - Liberação Final
-Libera:
+#### Cenário 4 - Navegação Hierárquica
+
+Lista o conteúdo do diretório /home.
+```c
+ls("/home");
+```
+
+Saída esperada:
 ```bash
-p3
-p4
+aluno
 ```
-**Permite verificar:**
-- Retorno da memória ao estado livre;
-- Coalescência completa do heap.
 
-#### 6 - Criação de Tasks
-Cria duas tasks:
+#### Cenário 5 - Resolução de Caminhos
+
+Localiza um inode a partir de um caminho absoluto.
+```c
+path_lookup("/home/aluno/notas.txt");
+```
+O sistema percorre cada diretório até localizar o inode correspondente ao arquivo.
+
+#### Cenário 6 - Gerenciamento de Inodes
+
+Durante a criação de arquivos e diretórios:
+
+- um inode livre é localizado;
+- o inode é reservado;
+- seus metadados são inicializados;
+- o diretório pai recebe uma nova entrada.
+
+#### Cenário 7 - Gerenciamento de Blocos
+
+O sistema mantém um bitmap responsável por controlar:
+
+- blocos livres;
+- blocos ocupados.
+
+Os blocos são preparados para serem utilizados pelas operações de leitura e escrita dos arquivos.
+
+#### Cenário 8 - Estrutura Inicial do Sistema
+
+Após executar:
 ```bash
-task1
-task2
+fs_init();
 ```
-**Cada task:**
-- Possui stack alocada dinamicamente;
-- Imprime estatísticas de memória;
-- Usa yield() para troca de contexto.
 
-#### 7 - Remoção de Task (liberação de memória dinâmica)
-Remove a **Task 0**, liberando sua stack com `kfree()`.
-
-**Demonstra:**
-- Integração entre gerenciamento de memória e sistema de tasks;
-- Liberação de memória associada a estruturas do kernel;
-- Redução da memória utilizada no heap.
-
-**Observação:**
-- A task **não é removida completamente** do sistema, apenas sua **stack é liberada**;
-- O scheduler **ignora** tasks inválidas.
-
-#### 8 - Dump do Heap
-Exibe o estado interno do heap:
+A seguinte estrutura é criada automaticamente:
 ```bash
-Lista de blocos
-Tamanhos
-Status (livre/ocupado)
+/
+├── home
+├── tmp
+└── bin
 ```
-Útil para depuração e validação do allocator.
-
-#### 9 - Iniciar Scheduler
-
-Inicia o escalonador cooperativo.
-
-**-> Requisito:**
-As tasks devem ser criadas antes (opção 6)
-
-Comportamento das Tasks, após iniciar o scheduler:
-```bash
-Task 1 rodando
-Task 1 estatisticas
-Heap total: 8388608 bytes
-Heap usado: 4144 bytes
-Heap livre: 8384440 bytes
-
-Task 2 rodando
-Task 2 estatisticas
-Heap total: 8388608 byte
-sHeap usado: 4144 bytes
-Heap livre: 8384440 bytes
-
-Task 1 rodando
-Task 1 estatisticas
-Heap total: 8388608 bytes
-Heap usado: 4144 bytes
-Heap livre: 8384440 bytes
-
-...
-```
-**As tasks:**
-- Executam em loop infinito;
-- Alternam via yield();
-- Monitoram o estado do heap em tempo real;
-- Conclusão dos Testes.
-
-**Obs**: Para fechar o QEMU corretamente, utilize: Ctrl + A  → solta →  X
-
-
-#### 0 - Encerrar Execução
-Trava o kernel em loop infinito.
-
-### Exemplo de Fluxo de Teste Sugerido
-2. Aloca blocos iniciais
-3. Libera e testa coalescência
-4. Testa reutilização
-5. Libera tudo
-6. Cria tasks
-7. Remover uma task (liberar memória, se for utilizado o 9 vai mostrar só a task 2)
-9. Inicia scheduler
-
-**O menu permite validar que o alocador:**
-- Reutiliza memória corretamente;
-- Realiza coalescência de blocos adjacentes;
-- Evita fragmentação excessiva;
-- Suporta múltiplas alocações dinâmicas;
-- Funciona corretamente com criação de tasks.
-
-O sistema demonstra, de forma prática, conceitos **fundamentais de gerenciamento de memória em kernels**.
 
 ---
 
@@ -300,18 +202,25 @@ boot/
 │
 ├── start.S       # Boot inicial e runtime mínimo
 └── trap_entry.S  # Entrada de traps
+drivers/
+│
+└── block.c       # Gerenciamento de blocos
 include/
 │
+├── block.h       # Interface do gerenciamento de blocos
 ├──	fs.h          # Interface do sistema de arquivos (não implementado)
+├── inode.h       # Estruturas e gerenciamento de inodes
 ├──	memory.h      # Interface do gerenciador de memória
 ├──	scheduler.h   # Interface do escalonador
 ├──	string.h      # Funções auxiliares de manipulação de strings
 ├──	taks.h        # Estrutura TCB e criação de tasks
+├── treefs.h      # Interface do TreeFS
 └──	uart.h        # Interface de saída serial (UART)
 kernel/
 │
 ├── context.S     # Troca de contexto
 ├── fs.c          # Sistema de arquivos (não implementado)
+├── inode.c       # Gerenciamento de inodes
 ├── main.c        # Inicialização do kernel
 ├── memory.c      # Heap do kernel
 ├── scheduler.c   # Escalonador
@@ -320,6 +229,7 @@ kernel/
 ├── task.c        # Criação de tasks
 ├── timer.c       # Timer via SBI (não implementado)
 ├── trap.c        # Tratamento de interrupções (não implementado)
+├── treefs.c      # Implementação do TreeFS
 ├── uart.c        # Saída serial
 └── user.S        # Código de modo usuário
 linker.ld         # Layout da memória
@@ -328,5 +238,4 @@ README.md         # Explicação do projeto
 ```
 
 ### Observações
-- Uso de registradores temporários pode gerar limitações em sistemas maiores;
 - Projeto com **foco didático** para compreensão de sistemas operacionais.
