@@ -47,28 +47,33 @@ void task2()
 void execucao_cenarios(){
     uart_print("\n=== Execucao dos Cenarios ===\n");
 
-    uart_print("Cenario 1 - Listagem da Raiz \n");
+    uart_print("\nCenario 1 - Listagem da Raiz \n");
+    uart_print("=============================\n");
     ls("/");
     uart_print("\n");
 
     uart_print("Cenario 2 - Criacao de Diretorio ('/home/aluno')\n");
+    uart_print("================================================\n");
     mkdir("/home/aluno");
-    uart_print("Verificando /home...\n");
+    uart_print("(Verificando /home...)\n");
     ls("/home");
     uart_print("\n");
 
     uart_print("Cenario 3- Criacao de Arquivos('/home/aluno/notas.txt')\n");
+    uart_print("=======================================================\n");
     int fd = create("/home/aluno/notas.txt");
-    uart_print("Verificando /aluno...\n");
+    uart_print("(Verificando /aluno...)\n");
     ls("/home/aluno");
 
     uart_print("\nCenario 4 - Escrita ('Sistemas Operacionais')\n");
+    uart_print("=============================================\n");
     int bytes_escritos = write(fd, "Sistemas Operacionais", 22);
     uart_print("Total de bytes escritos: ");
     uart_print_uint(bytes_escritos);
     uart_print("\n");
 
     uart_print("\nCenario 5 - Leitura\n");
+    uart_print("====================\n");
     char buffer[30]; // Armazenamento para leitura
     int bytes_lidos = read(fd,buffer,22);
     uart_print("Total de bytes lidos: ");
@@ -77,15 +82,25 @@ void execucao_cenarios(){
     uart_print(buffer); 
     uart_print("\n");
 
-    uart_print("\nCenario 6 - Remocao\n");
-    uart_print("Ainda nao foi feito\n");
-    //unlink("/home/aluno/notas.txt");
+    uart_print("\nCenario 6 - Remocao ('/home/aluno/notas.txt')\n");
+    uart_print("=============================================\n");
+    unlink("/home/aluno/notas.txt");
+    uart_print("(Verificando /home/aluno...)\n");
+    ls("/home/aluno");
 
     uart_print("\nCenario 7 - Navegacao Hierarquica ('/home')\n");
+    uart_print("===========================================\n");
+    uart_print("(Verificando /home...)\n");
     ls("/home");
 
     uart_print("\nCenario 8 - Reutilizacao de inodes e blocos liberados\n");
-    uart_print("Ainda não foi feito - precisa do unlink.");
+    uart_print("=====================================================\n");
+    uart_print("(Criando teste_cenario.txt em /home/aluno)\n");
+    int fd_novo = create("/home/aluno/teste_cenario.txt");
+    write(fd_novo, "Reunitilizando bloco...", 23);
+    uart_print("(Verificando /home/aluno...)\n");
+    ls("/home/aluno");
+    uart_print("\n");
 }
 
 /*   Kernel   */

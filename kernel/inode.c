@@ -1,4 +1,5 @@
 #include "inode.h"
+#include "uart.h"
 
 static uint8_t inode_bitmap[MAX_INODES]; // 0 = livre e 1 = ocupado
   inode_t inode_table[MAX_INODES];
@@ -38,6 +39,10 @@ inode_t *inode_alloc(void) {
                 inode_table[indice_inode].blocks[indice_bloco] = 0;
             }
 
+            uart_print("Inode alocado: ");
+            uart_print_uint(indice_inode);
+            uart_print("\n");
+
             return &inode_table[indice_inode];
         }
     }
@@ -62,6 +67,9 @@ void inode_free(uint32_t inode) {
     for (indice_bloco = 0; indice_bloco < MAX_BLOCOS_INODE; indice_bloco++) {
         inode_table[inode].blocks[indice_bloco] = 0;
     }
+    uart_print("Inode liberado: ");
+    uart_print_uint(inode);
+    uart_print("\n");
 }
 
 /* Retorna o índice do inode na tabela de inodes */
