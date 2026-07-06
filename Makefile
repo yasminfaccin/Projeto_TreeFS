@@ -20,6 +20,7 @@ OBJS = start.o \
        scheduler.o \
        string.o \
        task.o \
+       timestamp.o \
        uart.o
 
 all:
@@ -34,6 +35,7 @@ all:
 	$(CROSS)gcc $(CFLAGS) -c kernel/scheduler.c
 	$(CROSS)gcc $(CFLAGS) -c kernel/string.c
 	$(CROSS)gcc $(CFLAGS) -c kernel/task.c
+	$(CROSS)gcc $(CFLAGS) -c kernel/timestamp.c
 	$(CROSS)gcc $(CFLAGS) -c kernel/treefs.c
 	$(CROSS)gcc $(CFLAGS) -c kernel/uart.c
 

@@ -1,8 +1,9 @@
 #include "inode.h"
+#include "timestamp.h"
 #include "uart.h"
 
 static uint8_t inode_bitmap[MAX_INODES]; // 0 = livre e 1 = ocupado
-  inode_t inode_table[MAX_INODES];
+inode_t inode_table[MAX_INODES];
 
 /* Limpa o bitmap e a tabela de inodes */
 void inode_init(void) {
@@ -19,6 +20,10 @@ void inode_init(void) {
         for (indice_bloco = 0; indice_bloco < MAX_BLOCOS_INODE; indice_bloco++) {
             inode_table[indice_inode].blocks[indice_bloco] = 0;
         }
+
+        inode_table[indice_inode].created_at = 0;
+        inode_table[indice_inode].modified_at = 0;
+        inode_table[indice_inode].accessed_at = 0;
     }
 }
 
@@ -33,6 +38,12 @@ inode_t *inode_alloc(void) {
             inode_table[indice_inode].size = 0;
             inode_table[indice_inode].type = 0;
             inode_table[indice_inode].links = 1;
+
+            // inicializa os timestamps do inode com o tempo atual
+            uint32_t tempo = timestamp();
+            inode_table[indice_inode].created_at = tempo;
+            inode_table[indice_inode].modified_at = tempo;
+            inode_table[indice_inode].accessed_at = tempo;
 
             // garante que os blocos comecem limpos
             for (indice_bloco = 0; indice_bloco < MAX_BLOCOS_INODE; indice_bloco++) {
@@ -67,6 +78,11 @@ void inode_free(uint32_t inode) {
     for (indice_bloco = 0; indice_bloco < MAX_BLOCOS_INODE; indice_bloco++) {
         inode_table[inode].blocks[indice_bloco] = 0;
     }
+
+    inode_table[inode].created_at = 0;
+    inode_table[inode].modified_at = 0;
+    inode_table[inode].accessed_at = 0;
+
     uart_print("Inode liberado: ");
     uart_print_uint(inode);
     uart_print("\n");

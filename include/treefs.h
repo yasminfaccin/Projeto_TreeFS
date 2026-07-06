@@ -51,3 +51,5 @@ int unlink(const char *path);
 int write(int fd, const void *buf, uint32_t size);
 
 int read(int fd, void *buf, uint32_t size);
+
+void informacoes_timestamp(const char *path);

@@ -12,6 +12,11 @@ typedef struct {
     uint16_t type;
     uint16_t links;
     uint32_t blocks[MAX_BLOCOS_INODE];
+
+    // timestamp
+    uint32_t created_at;
+    uint32_t modified_at;
+    uint32_t accessed_at;
 } inode_t;
 
 extern inode_t inode_table[];

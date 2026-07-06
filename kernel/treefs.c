@@ -2,6 +2,7 @@
 #include "block.h"
 #include "inode.h"
 #include "string.h"
+#include "timestamp.h"
 #include "uart.h"
 #define NULL ((void *)0)
 
@@ -448,6 +449,8 @@ int write(int fd, const void *buf, uint32_t size){
     }
 
     inode->size = size;
+    inode->modified_at = timestamp(); // quando escreve atualiza a modificação
+
     return size; // retorna a qtd de bytes que foi escrita
 }
 
@@ -465,6 +468,8 @@ int read(int fd, void *buf, uint32_t size){
     }
 
     inode_t *inode = fd_table[fd].inode;
+
+    inode->accessed_at = timestamp(); // quando faz a leitura atualiza o acesso
 
     uint32_t bytes_leitura = size;
     
@@ -490,4 +495,26 @@ int read(int fd, void *buf, uint32_t size){
     }
 
     return total_lido; // retorna quantos bytes foram lidos
+}
+
+/* Exibe os timestamps armazenados em um inode */
+void informacoes_timestamp(const char *path) {
+    inode_t *inode = path_lookup(path); // localiza o inode correspondente ao caminho
+
+    if (inode == NULL) {
+        uart_print("Arquivo nao encontrado para mostrar o timestamp.\n");
+        return;
+    }
+
+    uart_print("Criado: ");
+    uart_print_uint(inode->created_at);
+    uart_print("\n");
+
+    uart_print("Modificado: ");
+    uart_print_uint(inode->modified_at);
+    uart_print("\n");
+
+    uart_print("Ultimo acesso: ");
+    uart_print_uint(inode->accessed_at);
+    uart_print("\n");
 }
