@@ -350,6 +350,7 @@ inode_t *path_lookup(const char *path) {
                 flag = 1;
                 proximo_inode = dir_atual->entradas[i].inode;
                 dir_atual = &diretorios[proximo_inode];
+                inode_atual = &inode_table[proximo_inode];
                 break;
             }
         }
@@ -492,13 +493,14 @@ int read(int fd, void *buf, uint32_t size){
 
     inode_t *inode = fd_table[fd].inode;
 
-    inode->accessed_at = timestamp(); // quando faz a leitura atualiza o acesso
-
+    
     if ((inode->permissions & PERM_READ) == 0) {
         uart_print("Permissao negada para leitura...\n");
         return -1; 
     }
-
+    
+    inode->accessed_at = timestamp(); // quando faz a leitura atualiza o acesso
+    
     uint32_t bytes_leitura = size;
     
     if(bytes_leitura > inode->size){
